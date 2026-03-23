@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>ShopManager</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+:root{
+  --p:#6C3483;--p2:#5B2C6F;--p3:#f5eef8;
+  --teal:#148F77;--teal2:#e8f8f5;
+  --red:#C0392B;--red2:#fdf2f1;
+  --amber:#D4830B;--amber2:#fef9ec;
+  --green:#1E8449;--green2:#eafaf1;
+  --blue:#1565C0;--blue2:#e8f0fe;
+  --text:#1C2833;--text2:#566573;--text3:#AAB7B8;
+  --bg:#F2F3F4;--card:#fff;--border:#E5E8E8;
+  --shadow:0 2px 12px rgba(0,0,0,0.06);
+  --shadow2:0 8px 32px rgba(108,52,131,0.18);
+}
+.dark{
+  --p:#A569BD;--p2:#8E44AD;--p3:#2C1654;
+  --teal:#1ABC9C;--teal2:#0e2e28;
+  --red:#E74C3C;--red2:#2C1010;
+  --amber:#F39C12;--amber2:#2C2010;
+  --green:#2ECC71;--green2:#0e2818;
+  --blue:#5DADE2;--blue2:#0e1e30;
+  --text:#ECF0F1;--text2:#BDC3C7;--text3:#7F8C8D;
+  --bg:#121212;--card:#1E1E1E;--border:#2C2C2C;
+  --shadow:0 2px 12px rgba(0,0,0,0.3);
+  --shadow2:0 8px 32px rgba(0,0,0,0.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow-x:hidden;}
+body{background:var(--bg);font-family:'Plus Jakarta Sans',sans-serif;color:var(--text);overscroll-behavior:none;transition:background 0.3s,color 0.3s;}
+button,input,select,textarea{font-family:inherit;}
+button{cursor:pointer;border:none;transition:all 0.15s ease;}
+button:active{transform:scale(0.95);}
+input,textarea,select{outline:none;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:#aaa;border-radius:3px;}
+
+@keyframes slideUp  {from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes popIn    {from{transform:scale(0.85);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes fadeUp   {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin     {to{transform:rotate(360deg)}}
+@keyframes micPulse {0%,100%{box-shadow:0 0 0 0 rgba(231,76,60,0.5)}50%{box-shadow:0 0 0 8px rgba(231,76,60,0)}}
+
+.field{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:11px;font-size:14px;color:var(--text);background:var(--card);transition:all 0.18s;}
+.field:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(108,52,131,0.1);}
+.field::placeholder{color:var(--text3);}
+select.field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+
+.overlay{position:fixed;inset:0;background:rgba(10,10,15,0.65);z-index:200;backdrop-filter:blur(4px);}
+.sheet{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--card);border-radius:24px 24px 0 0;z-index:201;max-height:94vh;overflow-y:auto;animation:slideUp 0.28s cubic-bezier(0.34,1.56,0.64,1);}
+.sheet-handle{width:40px;height:4px;background:var(--border);border-radius:4px;margin:12px auto 0;}
+.popup{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:16px;z-index:201;}
+.card-pop{background:var(--card);border-radius:20px;width:100%;max-width:380px;overflow:hidden;animation:popIn 0.22s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+
+.bnav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--card);z-index:100;display:flex;padding-bottom:env(safe-area-inset-bottom,0);box-shadow:0 -1px 0 var(--border),0 -8px 24px rgba(0,0,0,0.06);transition:background 0.3s;}
+.nb{flex:1;padding:8px 0 10px;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;color:var(--text3);transition:color 0.2s;}
+.nb.on{color:var(--p);}
+.nb .ni{font-size:21px;line-height:1;transition:transform 0.2s;}
+.nb.on .ni{transform:scale(1.15);}
+.nb .nt{font-size:9px;font-weight:800;letter-spacing:0.5px;}
+
+.tag{display:inline-flex;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:16px;}
+.tr{background:var(--red2);color:var(--red);}
+.tg{background:var(--green2);color:var(--green);}
+.tgr{background:var(--border);color:var(--text2);}
+.tb{background:var(--blue2);color:var(--blue);}
+.ta{background:var(--amber2);color:var(--amber);}
+.tp{background:var(--p3);color:var(--p);}
+
+.pcard{background:var(--card);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:11px;animation:fadeUp 0.22s ease both;border:1px solid var(--border);}
+.scard{flex:1;background:rgba(255,255,255,0.1);border-radius:12px;padding:10px 6px;text-align:center;border:1px solid rgba(255,255,255,0.15);}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#1C2833;color:white;padding:11px 20px;border-radius:50px;font-size:13px;font-weight:700;z-index:400;white-space:nowrap;box-shadow:0 8px 32px rgba(0,0,0,0.25);animation:slideDown 0.22s ease;}
+.dark .toast{background:#ECF0F1;color:#1C2833;}
+.pdrop{width:100%;height:110px;border:2px dashed var(--border);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:var(--bg);transition:all 0.2s;position:relative;overflow:hidden;cursor:pointer;}
+.pdrop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.qbtn{flex:1;padding:10px 0;font-weight:700;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.cat-pill{padding:6px 14px;border-radius:18px;font-size:12px;font-weight:700;white-space:nowrap;transition:all 0.15s;}
+.fab{position:fixed;bottom:76px;right:16px;width:54px;height:54px;border-radius:50%;background:var(--p);color:white;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow2);z-index:90;}
+.lbl-s{font-size:11px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:7px;}
+.tog-wrap{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.tog{width:44px;height:24px;border-radius:12px;position:relative;transition:background 0.2s;flex-shrink:0;}
+.tog-knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:white;transition:transform 0.2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);}
+.tog.on .tog-knob{transform:translateX(20px);}
+.ptab{flex:1;padding:7px;border-radius:9px;font-size:11px;font-weight:700;transition:all 0.15s;}
+.search-wrap{position:relative;}
+.search-inp{width:100%;padding:12px 50px 12px 40px;border:none;border-radius:13px;font-size:14px;font-weight:500;background:var(--card);color:var(--text);box-shadow:var(--shadow);transition:box-shadow 0.2s;}
+.search-inp:focus{box-shadow:0 0 0 2px var(--p);}
+.search-inp::placeholder{color:var(--text3);}
+
+/* Status badge for repair jobs */
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:800;padding:4px 10px;border-radius:20px;}
+.s-pending  {background:#fff3cd;color:#856404;}
+.s-progress {background:#cce5ff;color:#004085;}
+.s-done     {background:#d4edda;color:#155724;}
+.s-delivered{background:#e2e3e5;color:#383d41;}
+
+/* Expiry warning */
+.exp-warn{background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:#856404;}
+.exp-danger{background:var(--red2);border:1px solid var(--red);border-radius:8px;padding:6px 10px;font-size:11px;font-weight:700;color:var(--red);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+/* ── Keys ── */
+var K_TYPE  = "sm-shoptype-v1";
+var K_PROD  = "sm-prod-v9";
+var K_HIST  = "sm-hist-v2";
+var K_SUPP  = "sm-supp-v1";
+var K_JOBS  = "sm-jobs-v1";   // mobile repair jobs
+var K_DARK  = "sm-dark-v1";
+
+/* ── Shop types ── */
+var SHOP_TYPES = [
+  {id:"kirana",  label:"Kirana / Grocery", emoji:"🛍️", color:"#6C3483", desc:"Daily items, FMCG, groceries"},
+  {id:"cloth",   label:"Cloth Shop",       emoji:"👕", color:"#1A5276", desc:"Clothes, fabric, accessories"},
+  {id:"repair",  label:"Mobile Repair",    emoji:"📱", color:"#148F77", desc:"Repair jobs, spare parts"},
+  {id:"medical", label:"Medical Store",    emoji:"💊", color:"#C0392B", desc:"Medicines, batch & expiry"}
+];
+
+var CAT_COLORS={
+  "General":{accent:"#6C3483",light:"#f5eef8",icon:"📦"},
+  "Soap":   {accent:"#1A5276",light:"#eaf4fb",icon:"🧼"},
+  "Hygiene":{accent:"#148F77",light:"#e8f8f5",icon:"🧴"},
+  "Food":   {accent:"#B7770D",light:"#fef9ec",icon:"🍞"},
+  "Drink":  {accent:"#1F618D",light:"#e8f4fb",icon:"🥤"},
+  "Medicine":{accent:"#C0392B",light:"#fdf2f1",icon:"💊"},
+  "Cleaning":{accent:"#117A65",light:"#e8f8f5",icon:"🧹"},
+  "Other":  {accent:"#626567",light:"#f2f3f4",icon:"📦"},
+  "Men":    {accent:"#1A5276",light:"#eaf4fb",icon:"👔"},
+  "Women":  {accent:"#884EA0",light:"#f5eef8",icon:"👗"},
+  "Kids":   {accent:"#D4AC0D",light:"#fef9ec",icon:"🧒"},
+  "Unisex": {accent:"#148F77",light:"#e8f8f5",icon:"👕"},
+  "Tablets":{accent:"#C0392B",light:"#fdf2f1",icon:"💊"},
+  "Syrup":  {accent:"#E67E22",light:"#fef9ec",icon:"🍶"},
+  "Capsule":{accent:"#8E44AD",light:"#f5eef8",icon:"💉"},
+  "Cream":  {accent:"#148F77",light:"#e8f8f5",icon:"🧴"},
+  "Screen": {accent:"#1565C0",light:"#e8f0fe",icon:"📱"},
+  "Battery":{accent:"#148F77",light:"#e8f8f5",icon:"🔋"},
+  "Parts":  {accent:"#626567",light:"#f2f3f4",icon:"🔧"}
+};
+function getCat(cat){return CAT_COLORS[cat]||CAT_COLORS["General"];}
+
+/* ── Category lists per shop ── */
+var CATS={
+  kirana: ["General","Soap","Hygiene","Food","Drink","Medicine","Cleaning","Other"],
+  cloth:  ["Men","Women","Kids","Unisex","Other"],
+  repair: ["Screen","Battery","Parts","Other"],
+  medical:["Tablets","Syrup","Capsule","Cream","Other"]
+};
+var SIZES=["XS","S","M","L","XL","XXL","Free Size","Custom"];
+var COLORS_LIST=["Red","Blue","Green","Black","White","Yellow","Pink","Purple","Brown","Orange","Grey","Multi"];
+var JOB_STATUS=["Pending","In Progress","Done","Delivered"];
+var EMOJIS=["📦","🧼","🟢","🌸","🧴","🛒","🍫","🥤","💊","🧹","👕","👔","👗","📱","🔋","🔧","🩺","🍞"];
+
+/* ── Empty forms ── */
+var EMPTY_PROD={name:"",qty:"",saleR:"",saleW:"",cost:"",emoji:"📦",cat:"General",photo:null,suppId:null,
+  size:"",color:"",fabric:"",gender:"",      // cloth
+  expiry:"",batch:"",prescription:false,     // medical
+  brand:""                                   // general
+};
+var EMPTY_JOB={customerName:"",phone:"",device:"",imei:"",problem:"",status:"Pending",
+  cost:"",advance:"",notes:"",warranty:"",dateIn:""};
+
+/* ── Helpers ── */
+function compress(file,cb){
+  var r=new FileReader();
+  r.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var M=300,w=img.width,h=img.height;
+      if(w>h){if(w>M){h=h*(M/w);w=M;}}else{if(h>M){w=w*(M/h);h=M;}}
+      var c=document.createElement("canvas");c.width=w;c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      cb(c.toDataURL("image/jpeg",0.7));
+    };
+    img.src=e.target.result;
+  };
+  r.readAsDataURL(file);
+}
+function fmtDate(ts){
+  if(!ts)return"—";
+  var d=new Date(ts),mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return d.getDate()+" "+mo[d.getMonth()]+" "+d.getFullYear();
+}
+function daysUntil(dateStr){
+  if(!dateStr)return null;
+  var d=new Date(dateStr),now=new Date();
+  now.setHours(0,0,0,0);d.setHours(0,0,0,0);
+  return Math.round((d-now)/(1000*60*60*24));
+}
+function ld(key,def){try{var v=localStorage.getItem(key);return v?JSON.parse(v):def;}catch(e){return def;}}
+function sv(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch(e){}}
+
+/* ════════════════════════════════════════════ */
+function App(){
+  var S=React.useState,E=React.useEffect;
+  var [shopType, setShopType]   = S(null);       // null = not chosen yet
+  var [prods,    setProds]       = S([]);
+  var [jobs,     setJobs]        = S([]);         // repair jobs
+  var [hist,     setHist]        = S([]);
+  var [supps,    setSupps]       = S([]);
+  var [dark,     setDark]        = S(false);
+  var [q,        setQ]           = S("");
+  var [listening,setListening]   = S(false);
+  var [ready,    setReady]       = S(false);
+  var [tab,      setTab]         = S("inventory");
+  var [form,     setForm]        = S(EMPTY_PROD);
+  var [editing,  setEditing]     = S(null);
+  var [showForm, setShowForm]    = S(false);
+  var [jobForm,  setJobForm]     = S(EMPTY_JOB);
+  var [editingJ, setEditingJ]    = S(null);
+  var [showJobF, setShowJobF]    = S(false);
+  var [qtyTgt,   setQtyTgt]      = S(null);
+  var [nqty,     setNqty]        = S("");
+  var [nqtyNote, setNqtyNote]    = S("");
+  var [delTgt,   setDelTgt]      = S(null);
+  var [delJob,   setDelJob]      = S(null);
+  var [toastMsg, setToastMsg]    = S(null);
+  var [bigImg,   setBigImg]      = S(null);
+  var [catF,     setCatF]        = S("All");
+  var [priceMode,setPriceMode]   = S("retail");
+  var [hFilter,  setHFilter]     = S("all");
+  var [jobFilter,setJobFilter]   = S("All");
+  var [showSForm,setShowSForm]   = S(false);
+  var [sForm,    setSForm]       = S({name:"",phone:"",address:"",products:""});
+  var [editingS, setEditingS]    = S(null);
+  var [delSupp,  setDelSupp]     = S(null);
+
+  E(function(){
+    var st=ld(K_TYPE,null);
+    setShopType(st);
+    setProds(ld(K_PROD,[]).map(function(x){return Object.assign({},EMPTY_PROD,x);}));
+    setJobs(ld(K_JOBS,[]));
+    setHist(ld(K_HIST,[]));
+    setSupps(ld(K_SUPP,[]));
+    var dk=ld(K_DARK,false); setDark(dk);
+    setReady(true);
+  },[]);
+
+  E(function(){
+    var el=document.documentElement;
+    dark?el.classList.add("dark"):el.classList.remove("dark");
+    sv(K_DARK,dark);
+  },[dark]);
+
+  function saveProds(p){setProds(p);try{sv(K_PROD,p);}catch(e){sv(K_PROD,p.map(function(x){return Object.assign({},x,{photo:null});}));msg("⚠️ Photos not saved");}}
+  function saveJobs(j){setJobs(j);sv(K_JOBS,j);}
+  function saveHist(h){setHist(h);sv(K_HIST,h);}
+  function addHist(prod,oq,nq,note){
+    var h=[{id:Date.now()+Math.random(),productId:prod.id,productName:prod.name,productEmoji:prod.emoji,oldQty:oq,newQty:nq,note:note||"",ts:Date.now()}].concat(hist).slice(0,300);
+    saveHist(h);
+  }
+  function msg(m){setToastMsg(m);setTimeout(function(){setToastMsg(null);},2600);}
+  function setF(k){return function(e){setForm(function(f){return Object.assign({},f,{[k]:e.target.value});});};}
+  function setJF(k){return function(e){setJobForm(function(f){return Object.assign({},f,{[k]:e.target.value});});};}
+  function handlePhoto(e){var f=e.target.files&&e.target.files[0];if(!f)return;compress(f,function(d){setForm(function(fm){return Object.assign({},fm,{photo:d});});});}
+
+  function chooseShop(id){
+    setShopType(id);sv(K_TYPE,id);
+    var cats=CATS[id];
+    setForm(function(f){return Object.assign({},f,{cat:cats[0]});});
+    setCatF("All");
+  }
+
+  function submitProd(){
+    if(!form.name||!form.saleR||!form.cost){msg("⚠️ Name, Sale Price & Cost required");return;}
+    var qv=form.qty||"0";
+    var p;
+    if(editing){
+      var oq=editing.qty;
+      p=prods.map(function(x){return x.id===editing.id?Object.assign({},x,form,{qty:qv,saleR:+form.saleR,saleW:+form.saleW||+form.saleR,cost:+form.cost}):x;});
+      if(String(oq)!==String(qv))addHist(editing,oq,qv,"Edited");
+      msg("✅ Product updated");
+    }else{
+      var np=Object.assign({},form,{id:Date.now(),qty:qv,saleR:+form.saleR,saleW:+form.saleW||+form.saleR,cost:+form.cost});
+      p=prods.concat([np]);
+      addHist(np,0,qv,"Added");
+      msg("✅ Product added");
+    }
+    saveProds(p);setShowForm(false);setEditing(null);setForm(Object.assign({},EMPTY_PROD,{cat:CATS[shopType][0]}));
+  }
+
+  function submitJob(){
+    if(!jobForm.customerName||!jobForm.device){msg("⚠️ Customer name & device required");return;}
+    var j;
+    if(editingJ){
+      j=jobs.map(function(x){return x.id===editingJ.id?Object.assign({},x,jobForm):x;});
+      msg("✅ Job updated");
+    }else{
+      j=jobs.concat([Object.assign({},jobForm,{id:Date.now(),dateIn:new Date().toISOString().split("T")[0]})]);
+      msg("✅ Job added");
+    }
+    saveJobs(j);setShowJobF(false);setEditingJ(null);setJobForm(EMPTY_JOB);
+  }
+
+  function submitSupp(){
+    if(!sForm.name){msg("⚠️ Supplier name required");return;}
+    var s;
+    if(editingS){
+      s=supps.map(function(x){return x.id===editingS.id?Object.assign({},x,sForm):x;});
+      msg("✅ Supplier updated");
+    }else{
+      s=supps.concat([Object.assign({},sForm,{id:Date.now()})]);
+      msg("✅ Supplier added");
+    }
+    sv(K_SUPP,s);setSupps(s);
+    setShowSForm(false);setEditingS(null);setSForm({name:"",phone:"",address:"",products:""});
+  }
+
+  function doDelete(){
+    var oq=delTgt.qty;
+    saveProds(prods.filter(function(x){return x.id!==delTgt.id;}));
+    var h=[{id:Date.now()+Math.random(),productId:delTgt.id,productName:delTgt.name,productEmoji:delTgt.emoji,oldQty:oq,newQty:0,note:"Deleted",ts:Date.now()}].concat(hist).slice(0,300);
+    saveHist(h);setDelTgt(null);msg("🗑️ Deleted");
+  }
+
+  function doQty(){
+    if(!nqty.trim()){msg("⚠️ Enter quantity");return;}
+    var oq=qtyTgt.qty;
+    saveProds(prods.map(function(x){return x.id===qtyTgt.id?Object.assign({},x,{qty:nqty.trim()}):x;}));
+    addHist(qtyTgt,oq,nqty.trim(),nqtyNote||"Manual update");
+    setQtyTgt(null);setNqty("");setNqtyNote("");msg("✅ Updated");
+  }
+
+  function openEditProd(p){
+    setEditing(p);setForm(Object.assign({},EMPTY_PROD,p,{qty:String(p.qty),saleR:String(p.saleR||""),saleW:String(p.saleW||""),cost:String(p.cost)}));
+    setShowForm(true);
+  }
+
+  function startVoice(){
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){msg("❌ Voice not supported");return;}
+    var rec=new SR();rec.lang="en-IN";rec.interimResults=true;
+    setListening(true);
+    rec.onresult=function(e){setQ(e.results[0][0].transcript);};
+    rec.onerror=function(){setListening(false);msg("❌ Mic error — check permissions");};
+    rec.onend=function(){setListening(false);};
+    rec.start();
+  }
+
+  function buildStockText(){
+    var lines=["🏪 *"+stInfo.label+" — Stock Report*",""];
+    lines.push("Products: "+prods.length+", Items: "+Math.round(prods.reduce(function(s,p){return s+(parseFloat(p.qty)||0);},0)));
+    lines.push("Stock Value: ₹"+Math.round(prods.reduce(function(s,p){return s+(parseFloat(p.qty)||0)*p.cost;},0)));
+    lines.push("");prods.forEach(function(p){
+      lines.push(p.emoji+" "+p.name+" ("+p.qty+")");
+      lines.push("  Sale: ₹"+p.saleR+" | Cost: ₹"+p.cost);
+    });
+    lines.push("\n_ShopManager_");
+    return lines.join("\n");
+  }
+  function shareWA(){var t=encodeURIComponent(buildStockText());window.location.href="https://api.whatsapp.com/send?text="+t;}
+  function copyClip(){
+    var t=buildStockText();
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(function(){msg("✅ Copied! Paste in WhatsApp");}).catch(function(){fb(t);});}else{fb(t);}
+  }
+  function fb(t){var ta=document.createElement("textarea");ta.value=t;ta.style.opacity="0";document.body.appendChild(ta);ta.select();try{document.execCommand("copy");msg("✅ Copied!");}catch(e){msg("❌ Copy failed");}document.body.removeChild(ta);}
+
+  /* Derived */
+  var st       = SHOP_TYPES.find(function(x){return x.id===shopType;})||SHOP_TYPES[0];
+  var stInfo   = st;
+  var catList  = ["All"].concat(CATS[shopType]||CATS.kirana);
+  var list     = prods.filter(function(p){return p.name.toLowerCase().includes(q.toLowerCase())&&(catF==="All"||p.cat===catF);});
+  var totalCost= prods.reduce(function(s,p){return s+(parseFloat(p.qty)||0)*p.cost;},0);
+  var totalProfit=prods.reduce(function(s,p){var sp=priceMode==="retail"?(p.saleR||0):(p.saleW||p.saleR||0);return s+(sp-p.cost)*(parseFloat(p.qty)||0);},0);
+  var lowCount = prods.filter(function(p){var n=parseFloat(p.qty);return !isNaN(n)&&n<=2;}).length;
+  var filtJobs = jobFilter==="All"?jobs:jobs.filter(function(j){return j.status===jobFilter;});
+  var fHist    = hFilter==="all"?hist:hist.filter(function(h){return h.productId===hFilter;});
+
+  /* ── Loading ── */
+  if(!ready)return(
+    <div style={{height:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:16,background:"var(--bg)"}}>
+      <div style={{fontSize:48}}>🏪</div>
+      <div style={{width:36,height:36,border:"3px solid var(--border)",borderTopColor:"var(--p)",borderRadius:"50%",animation:"spin 0.8s linear infinite"}}></div>
+      <div style={{color:"var(--p)",fontWeight:700,fontSize:14}}>Loading ShopManager…</div>
+    </div>
+  );
+
+  /* ════════════ SHOP TYPE SELECTION SCREEN ════════════ */
+  if(!shopType)return(
+    <div style={{minHeight:"100vh",background:"linear-gradient(160deg,#6C3483 0%,#2C0D45 100%)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24}}>
+      <div style={{fontSize:56,marginBottom:12}}>🏪</div>
+      <div style={{color:"white",fontWeight:900,fontSize:28,textAlign:"center",marginBottom:6,letterSpacing:"-0.5px"}}>ShopManager</div>
+      <div style={{color:"rgba(255,255,255,0.6)",fontSize:14,textAlign:"center",marginBottom:36,fontWeight:500}}>The all-in-one shop inventory app</div>
+      <div style={{color:"rgba(255,255,255,0.85)",fontWeight:800,fontSize:13,letterSpacing:"1px",marginBottom:16,textAlign:"center"}}>SELECT YOUR SHOP TYPE</div>
+      <div style={{width:"100%",maxWidth:400,display:"flex",flexDirection:"column",gap:12}}>
+        {SHOP_TYPES.map(function(st){
+          return(
+            <button key={st.id} onClick={function(){chooseShop(st.id);}}
+              style={{background:"rgba(255,255,255,0.1)",border:"1.5px solid rgba(255,255,255,0.25)",borderRadius:18,padding:"18px 20px",display:"flex",alignItems:"center",gap:16,cursor:"pointer",backdropFilter:"blur(8px)",transition:"all 0.2s"}}>
+              <div style={{width:52,height:52,borderRadius:14,background:st.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,flexShrink:0,boxShadow:"0 4px 16px rgba(0,0,0,0.2)"}}>
+                {st.emoji}
+              </div>
+              <div style={{textAlign:"left"}}>
+                <div style={{color:"white",fontWeight:800,fontSize:17,lineHeight:1}}>{st.label}</div>
+                <div style={{color:"rgba(255,255,255,0.55)",fontSize:12,fontWeight:500,marginTop:4}}>{st.desc}</div>
+              </div>
+              <div style={{marginLeft:"auto",color:"rgba(255,255,255,0.4)",fontSize:20}}>›</div>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{color:"rgba(255,255,255,0.3)",fontSize:11,marginTop:28,textAlign:"center"}}>You can change this later in Settings</div>
+    </div>
+  );
+
+  /* ════════════ MAIN APP ════════════ */
+  var tabs=[
+    {id:"inventory",icon:"📦",label:"Stock"},
+    {id:"history",  icon:"🕒",label:"History"},
+    {id:"suppliers",icon:"🚚",label:"Suppliers"},
+    {id:"settings", icon:"⚙️", label:"Settings"}
+  ];
+  if(shopType==="repair") tabs.splice(1,0,{id:"jobs",icon:"🔧",label:"Jobs"});
+
+  return(
+    <div style={{maxWidth:480,margin:"0 auto",minHeight:"100vh",background:"var(--bg)",paddingBottom:72}}>
+
+      {/* ── HEADER ── */}
+      <div style={{background:"linear-gradient(135deg,"+stInfo.color+" 0%,#2C0D45 100%)",position:"sticky",top:0,zIndex:50,boxShadow:"0 4px 24px rgba(0,0,0,0.25)"}}>
+        <div style={{padding:"13px 16px 10px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:36,height:36,background:"rgba(255,255,255,0.15)",borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,border:"1px solid rgba(255,255,255,0.2)"}}>{stInfo.emoji}</div>
+            <div>
+              <div style={{color:"white",fontWeight:800,fontSize:17,letterSpacing:"-0.3px",lineHeight:1}}>ShopManager</div>
+              <div style={{color:"rgba(255,255,255,0.5)",fontSize:9,fontWeight:700,letterSpacing:"1px",marginTop:2}}>{stInfo.label.toUpperCase()}</div>
+            </div>
+          </div>
+          <div style={{display:"flex",gap:8,alignItems:"center"}}>
+            {lowCount>0&&<div style={{background:"#E74C3C",borderRadius:20,padding:"3px 9px",display:"flex",alignItems:"center",gap:3}}><span style={{fontSize:9}}>⚠️</span><span style={{color:"white",fontSize:10,fontWeight:800}}>{lowCount} Low</span></div>}
+            <div className="tog-wrap" onClick={function(){setDark(function(d){return !d;});}}>
+              <div className="tog" style={{background:dark?"var(--p)":"rgba(255,255,255,0.25)"}}><div className={"tog-knob"+(dark?" on":"")}/></div>
+              <span style={{fontSize:14}}>{dark?"🌙":"☀️"}</span>
+            </div>
+          </div>
+        </div>
+        {/* Stats */}
+        <div style={{padding:"6px 16px 12px",display:"flex",gap:8}}>
+          {[
+            {icon:"📦",val:prods.length,lbl:"Products"},
+            {icon:"🔢",val:Math.round(prods.reduce(function(s,p){return s+(parseFloat(p.qty)||0);},0)),lbl:"Items"},
+            {icon:"💰",val:"₹"+Math.round(totalCost),lbl:"Stock Cost"},
+            {icon:"📈",val:"₹"+Math.round(totalProfit),lbl:"Profit"}
+          ].map(function(s){return(
+            <div key={s.lbl} className="scard">
+              <div style={{fontSize:15,marginBottom:2}}>{s.icon}</div>
+              <div style={{color:"white",fontWeight:800,fontSize:14,lineHeight:1}}>{s.val}</div>
+              <div style={{color:"rgba(255,255,255,0.5)",fontSize:8,fontWeight:700,marginTop:2}}>{s.lbl}</div>
+            </div>
+          );})}
+        </div>
+        {/* Price toggle + Share */}
+        <div style={{padding:"0 16px 12px",display:"flex",gap:6}}>
+          <div style={{display:"flex",background:"rgba(255,255,255,0.1)",borderRadius:11,padding:3,flex:1}}>
+            {[["retail","🏷️ Retail"],["wholesale","📦 Wholesale"]].map(function(m){return(
+              <button key={m[0]} className="ptab" onClick={function(){setPriceMode(m[0]);}}
+                style={{background:priceMode===m[0]?"white":"transparent",color:priceMode===m[0]?"var(--p)":"rgba(255,255,255,0.65)",boxShadow:priceMode===m[0]?"0 2px 8px rgba(0,0,0,0.15)":"none"}}>
+                {m[1]}
+              </button>
+            );})}
+          </div>
+          <button onClick={shareWA} style={{background:"#25D366",color:"white",borderRadius:11,padding:"7px 12px",fontWeight:800,fontSize:11,display:"flex",alignItems:"center",gap:4}}>
+            <span style={{fontSize:15}}>📲</span>WA
+          </button>
+          <button onClick={copyClip} style={{background:"rgba(255,255,255,0.15)",color:"white",borderRadius:11,padding:"7px 10px",fontWeight:800,fontSize:11,border:"1px solid rgba(255,255,255,0.2)"}}>
+            📋
+          </button>
+        </div>
+      </div>
+
+      {/* ══════════ INVENTORY TAB ══════════ */}
+      {tab==="inventory"&&(
+        <div style={{padding:"14px 14px 0"}}>
+          {/* Search with voice */}
+          <div className="search-wrap" style={{marginBottom:12}}>
+            <span style={{position:"absolute",left:13,top:"50%",transform:"translateY(-50%)",fontSize:15,color:"var(--text3)",pointerEvents:"none"}}>🔍</span>
+            <input className="search-inp" value={q} onChange={function(e){setQ(e.target.value);}} placeholder="Say or type product name…"/>
+            {q&&!listening&&<button onClick={function(){setQ("");}} style={{position:"absolute",right:50,top:"50%",transform:"translateY(-50%)",background:"var(--border)",border:"none",borderRadius:50,width:20,height:20,fontSize:10,color:"var(--text2)",display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>}
+            <button onClick={startVoice} style={{position:"absolute",right:8,top:"50%",transform:"translateY(-50%)",width:34,height:34,borderRadius:"50%",border:"none",background:listening?"linear-gradient(135deg,#E74C3C,#C0392B)":"linear-gradient(135deg,var(--p),var(--p2))",color:"white",fontSize:15,display:"flex",alignItems:"center",justifyContent:"center",boxShadow:listening?"0 0 0 4px rgba(231,76,60,0.3)":"0 2px 8px rgba(108,52,131,0.3)",animation:listening?"micPulse 1s infinite":"none"}}>
+              {listening?"⏹":"🎤"}
+            </button>
+            {listening&&<div style={{position:"absolute",top:-28,left:"50%",transform:"translateX(-50%)",background:"var(--red)",color:"white",fontSize:10,fontWeight:800,padding:"3px 12px",borderRadius:20,whiteSpace:"nowrap"}}>🎤 Listening…</div>}
+          </div>
+
+          {/* Cat filter */}
+          <div style={{display:"flex",gap:7,overflowX:"auto",marginBottom:12,paddingBottom:2}}>
+            {catList.map(function(c){return(
+              <button key={c} className="cat-pill" onClick={function(){setCatF(c);}}
+                style={{background:catF===c?"var(--p)":"var(--card)",color:catF===c?"white":"var(--text2)",border:catF===c?"none":"1px solid var(--border)",boxShadow:catF===c?"0 2px 8px rgba(108,52,131,0.25)":"none"}}>
+                {c}
+              </button>
+            );})}
+          </div>
+
+          {list.length===0&&(
+            <div style={{textAlign:"center",padding:"48px 20px",background:"var(--card)",borderRadius:18,border:"2px dashed var(--border)"}}>
+              <div style={{fontSize:48,marginBottom:12}}>{q?"🔍":"📦"}</div>
+              <div style={{fontWeight:800,fontSize:16,marginBottom:5}}>{q?"No results":"Inventory empty"}</div>
+              <div style={{color:"var(--text3)",fontSize:13,marginBottom:18}}>Tap + to add your first item</div>
+            </div>
+          )}
+
+          {/* ── PRODUCT CARDS ── */}
+          {list.map(function(p,i){
+            var sp   = priceMode==="retail"?(p.saleR||0):(p.saleW||p.saleR||0);
+            var pru  = sp-p.cost;
+            var prt  = pru*(parseFloat(p.qty)||0);
+            var mg   = sp>0?Math.round((pru/sp)*100):0;
+            var qn   = parseFloat(p.qty);
+            var low  = !isNaN(qn)&&qn<=2;
+            var good = !isNaN(qn)&&qn>=10;
+            var cc   = getCat(p.cat);
+            /* Expiry for medical */
+            var expDays = shopType==="medical"&&p.expiry?daysUntil(p.expiry):null;
+            var expWarn = expDays!==null&&expDays<=30;
+            var expExp  = expDays!==null&&expDays<=0;
+            return(
+              <div key={p.id} className="pcard" style={{animationDelay:(i*0.04)+"s",borderLeft:"4px solid "+(low?"var(--red)":cc.accent)}}>
+                <div style={{background:low?"var(--red)":cc.accent,height:4}}/>
+                <div style={{padding:"13px 13px 9px",display:"flex",gap:11,alignItems:"flex-start"}}>
+                  {p.photo?(
+                    <div style={{position:"relative",flexShrink:0}}>
+                      <img src={p.photo} onClick={function(){setBigImg(p.photo);}} style={{width:70,height:70,borderRadius:12,objectFit:"cover",border:"2.5px solid "+cc.accent,cursor:"pointer",display:"block"}}/>
+                      {low&&<div style={{position:"absolute",top:-4,right:-4,width:18,height:18,background:"var(--red)",borderRadius:"50%",border:"2px solid var(--card)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"white",fontWeight:800}}>!</div>}
+                    </div>
+                  ):(
+                    <div onClick={function(){openEditProd(p);}} style={{width:70,height:70,borderRadius:12,background:cc.light,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",flexShrink:0,border:"2px solid "+cc.accent,cursor:"pointer",gap:1,position:"relative"}}>
+                      <span style={{fontSize:26}}>{p.emoji}</span>
+                      <span style={{fontSize:8,color:cc.accent,fontWeight:800}}>+ PHOTO</span>
+                      {low&&<div style={{position:"absolute",top:-4,right:-4,width:18,height:18,background:"var(--red)",borderRadius:"50%",border:"2px solid var(--card)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:9,color:"white",fontWeight:800}}>!</div>}
+                    </div>
+                  )}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontWeight:800,fontSize:15,marginBottom:4,lineHeight:1.2}}>{p.name}</div>
+                    {p.brand&&<div style={{fontSize:11,color:"var(--text3)",fontWeight:600,marginBottom:3}}>🏭 {p.brand}</div>}
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap",marginBottom:3}}>
+                      <span style={{fontSize:10,fontWeight:700,padding:"2px 7px",borderRadius:14,background:cc.light,color:cc.accent}}>{cc.icon} {p.cat}</span>
+                      {low&&<span className="tag tr">⚠ Low</span>}
+                      {good&&<span className="tag tg">✓ Stock</span>}
+                      {/* Cloth extras */}
+                      {p.size&&<span className="tag tgr">Size: {p.size}</span>}
+                      {p.color&&<span className="tag tgr">🎨 {p.color}</span>}
+                      {/* Medical extras */}
+                      {p.prescription&&<span className="tag tr">Rx</span>}
+                    </div>
+                    {/* Expiry warning */}
+                    {expDays!==null&&(
+                      <div className={expExp?"exp-danger":expWarn?"exp-warn":""} style={!expExp&&!expWarn?{fontSize:11,color:"var(--text3)",fontWeight:600}:{}}>
+                        {expExp?"🚫 EXPIRED":"⏰ Expires: "+p.expiry}{!expExp&&expDays!==null?" ("+expDays+" days)":""}
+                      </div>
+                    )}
+                    {p.batch&&<div style={{fontSize:10,color:"var(--text3)",fontWeight:600,marginTop:2}}>Batch: {p.batch}</div>}
+                    {p.fabric&&<div style={{fontSize:10,color:"var(--text3)",fontWeight:600,marginTop:2}}>🧵 {p.fabric}</div>}
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontWeight:900,fontSize:21,color:cc.accent,lineHeight:1}}>₹{sp}</div>
+                    <div style={{fontSize:9,color:"var(--text3)",fontWeight:700,marginTop:2}}>{priceMode==="retail"?"RETAIL":"WHOLE"}</div>
+                    {p.saleR!==p.saleW&&<div style={{fontSize:10,color:"var(--text3)",marginTop:1}}>{priceMode==="retail"?"W:₹"+(p.saleW||"–"):"R:₹"+(p.saleR||"–")}</div>}
+                  </div>
+                </div>
+                {/* Metrics */}
+                <div style={{margin:"0 12px",borderRadius:10,overflow:"hidden",border:"1.5px solid "+cc.accent+"33",marginBottom:9}}>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr"}}>
+                    {[
+                      {l:"Qty",v:p.qty,c:low?"var(--red)":cc.accent,bg:cc.light},
+                      {l:"Cost",v:"₹"+p.cost,c:"var(--text)",bg:"var(--card)"},
+                      {l:"Profit",v:"₹"+pru.toFixed(1),c:pru>=0?"var(--green)":"var(--red)",bg:pru>=0?"var(--green2)":"var(--red2)"}
+                    ].map(function(m,mi){return(
+                      <div key={m.l} style={{background:m.bg,padding:"9px 4px",textAlign:"center",borderRight:mi<2?"1px solid var(--border)":"none"}}>
+                        <div style={{fontWeight:900,fontSize:14,color:m.c,lineHeight:1}}>{m.v}</div>
+                        <div style={{fontSize:9,color:"var(--text3)",fontWeight:600,marginTop:2}}>{m.l}</div>
+                      </div>
+                    );})}
+                  </div>
+                  <div style={{background:"var(--bg)",padding:"7px 13px",display:"flex",justifyContent:"space-between",alignItems:"center",borderTop:"1px solid var(--border)"}}>
+                    <span style={{fontSize:11,color:"var(--text2)",fontWeight:600}}>Total profit</span>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <span style={{fontWeight:900,fontSize:13,color:prt>=0?"var(--green)":"var(--red)"}}>{prt>=0?"+":""}₹{prt.toFixed(1)}</span>
+                      <span style={{fontSize:10,fontWeight:800,padding:"2px 7px",borderRadius:7,background:prt>=0?"var(--green2)":"var(--red2)",color:prt>=0?"var(--green)":"var(--red)"}}>{mg}%</span>
+                    </div>
+                  </div>
+                </div>
+                {/* Actions */}
+                <div style={{display:"flex",borderTop:"1px solid var(--border)"}}>
+                  <button className="qbtn" onClick={function(){setQtyTgt(p);setNqty(String(p.qty));setNqtyNote("");}} style={{background:"var(--teal2)",color:"var(--teal)",borderRight:"1px solid var(--border)"}}>
+                    <span style={{fontSize:16}}>🔄</span><span>Update Qty</span>
+                  </button>
+                  <button className="qbtn" onClick={function(){openEditProd(p);}} style={{background:"var(--amber2)",color:"var(--amber)",borderRight:"1px solid var(--border)"}}>
+                    <span style={{fontSize:16}}>✏️</span><span>Edit</span>
+                  </button>
+                  <button className="qbtn" onClick={function(){setDelTgt(p);}} style={{background:"var(--red2)",color:"var(--red)"}}>
+                    <span style={{fontSize:16}}>🗑️</span><span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{height:16}}/>
+        </div>
+      )}
+
+      {/* ══════════ REPAIR JOBS TAB ══════════ */}
+      {tab==="jobs"&&shopType==="repair"&&(
+        <div style={{padding:"14px 14px 0"}}>
+          <div style={{display:"flex",gap:6,overflowX:"auto",marginBottom:12,paddingBottom:2}}>
+            {["All","Pending","In Progress","Done","Delivered"].map(function(s){return(
+              <button key={s} className="cat-pill" onClick={function(){setJobFilter(s);}}
+                style={{background:jobFilter===s?"var(--p)":"var(--card)",color:jobFilter===s?"white":"var(--text2)",border:jobFilter===s?"none":"1px solid var(--border)",boxShadow:jobFilter===s?"0 2px 8px rgba(108,52,131,0.25)":"none"}}>
+                {s}
+              </button>
+            );})}
+          </div>
+          {filtJobs.length===0&&(
+            <div style={{textAlign:"center",padding:"48px 20px",background:"var(--card)",borderRadius:18,border:"2px dashed var(--border)"}}>
+              <div style={{fontSize:48,marginBottom:12}}>🔧</div>
+              <div style={{fontWeight:800,fontSize:16,marginBottom:5}}>No repair jobs</div>
+              <div style={{color:"var(--text3)",fontSize:13}}>Tap + to log a new repair</div>
+            </div>
+          )}
+          {filtJobs.map(function(j,i){
+            var sc=j.status==="Pending"?"s-pending":j.status==="In Progress"?"s-progress":j.status==="Done"?"s-done":"s-delivered";
+            return(
+              <div key={j.id} className="pcard" style={{animationDelay:(i*0.04)+"s"}}>
+                <div style={{padding:"13px 13px 10px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                    <div>
+                      <div style={{fontWeight:800,fontSize:16,marginBottom:3}}>📱 {j.device}</div>
+                      <div style={{fontSize:13,color:"var(--text2)",fontWeight:600}}>👤 {j.customerName}</div>
+                      {j.phone&&<div style={{fontSize:12,color:"var(--text3)",fontWeight:600,marginTop:2}}>📞 {j.phone}</div>}
+                    </div>
+                    <span className={"status-badge "+sc}>{j.status}</span>
+                  </div>
+                  {j.problem&&<div style={{fontSize:13,color:"var(--text2)",background:"var(--bg)",borderRadius:8,padding:"8px 10px",marginBottom:8}}>🔍 {j.problem}</div>}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                    {[
+                      {l:"Repair Cost",v:j.cost?"₹"+j.cost:"—"},
+                      {l:"Advance Paid",v:j.advance?"₹"+j.advance:"—"},
+                      {l:"IMEI / Serial",v:j.imei||"—"},
+                      {l:"Date In",v:j.dateIn||"—"}
+                    ].map(function(m){return(
+                      <div key={m.l} style={{background:"var(--bg)",borderRadius:8,padding:"8px 10px"}}>
+                        <div style={{fontSize:10,color:"var(--text3)",fontWeight:700,marginBottom:2}}>{m.l}</div>
+                        <div style={{fontSize:13,fontWeight:700,color:"var(--text)"}}>{m.v}</div>
+                      </div>
+                    );})}
+                  </div>
+                  {j.warranty&&<div style={{fontSize:12,color:"var(--teal)",fontWeight:700,background:"var(--teal2)",padding:"5px 10px",borderRadius:8,marginBottom:8}}>🛡️ Warranty: {j.warranty}</div>}
+                  {j.notes&&<div style={{fontSize:12,color:"var(--text2)",marginBottom:8}}>📝 {j.notes}</div>}
+                  <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:4}}>
+                    {JOB_STATUS.map(function(s){return(
+                      <button key={s} onClick={function(){saveJobs(jobs.map(function(x){return x.id===j.id?Object.assign({},x,{status:s}):x;}));msg("Status → "+s);}}
+                        style={{fontSize:11,fontWeight:700,padding:"5px 12px",borderRadius:14,background:j.status===s?"var(--p)":"var(--card)",color:j.status===s?"white":"var(--text2)",border:j.status===s?"none":"1px solid var(--border)"}}>
+                        {s}
+                      </button>
+                    );})}
+                  </div>
+                </div>
+                <div style={{display:"flex",borderTop:"1px solid var(--border)"}}>
+                  <button className="qbtn" onClick={function(){setEditingJ(j);setJobForm(Object.assign({},EMPTY_JOB,j));setShowJobF(true);}} style={{background:"var(--amber2)",color:"var(--amber)",borderRight:"1px solid var(--border)"}}>
+                    <span style={{fontSize:16}}>✏️</span><span>Edit Job</span>
+                  </button>
+                  <button className="qbtn" onClick={function(){setDelJob(j);}} style={{background:"var(--red2)",color:"var(--red)"}}>
+                    <span style={{fontSize:16}}>🗑️</span><span>Delete</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+          <div style={{height:16}}/>
+        </div>
+      )}
+
+      {/* ══════════ HISTORY TAB ══════════ */}
+      {tab==="history"&&(
+        <div style={{padding:"14px 14px 0"}}>
+          <div style={{display:"flex",gap:7,overflowX:"auto",marginBottom:10,paddingBottom:2}}>
+            <button className="cat-pill" onClick={function(){setHFilter("all");}} style={{background:hFilter==="all"?"var(--p)":"var(--card)",color:hFilter==="all"?"white":"var(--text2)",border:hFilter==="all"?"none":"1px solid var(--border)"}}>All</button>
+            {prods.map(function(p){return(
+              <button key={p.id} className="cat-pill" onClick={function(){setHFilter(p.id);}} style={{background:hFilter===p.id?"var(--p)":"var(--card)",color:hFilter===p.id?"white":"var(--text2)",border:hFilter===p.id?"none":"1px solid var(--border)"}}>
+                {p.emoji} {p.name}
+              </button>
+            );})}
+          </div>
+          {fHist.length===0&&<div style={{textAlign:"center",padding:"48px 20px",background:"var(--card)",borderRadius:18,border:"2px dashed var(--border)"}}><div style={{fontSize:48,marginBottom:12}}>🕒</div><div style={{fontWeight:800,fontSize:16}}>No history yet</div></div>}
+          {fHist.length>0&&(
+            <div style={{background:"var(--card)",borderRadius:16,overflow:"hidden",boxShadow:"var(--shadow)"}}>
+              {fHist.map(function(h){
+                var oN=parseFloat(h.oldQty),nN=parseFloat(h.newQty);
+                var isDel=h.note==="Deleted",isAdd=h.note==="Added";
+                var isUp=!isDel&&!isAdd&&!isNaN(oN)&&!isNaN(nN)&&nN>=oN;
+                var diff=!isNaN(oN)&&!isNaN(nN)?nN-oN:null;
+                var dotBg=isDel?"var(--red2)":isAdd?"var(--green2)":isUp?"var(--blue2)":"var(--amber2)";
+                var dotIcon=isDel?"🗑️":isAdd?"✨":isUp?"⬆️":"⬇️";
+                return(
+                  <div key={h.id} style={{display:"flex",gap:11,padding:"13px 15px",borderBottom:"1px solid var(--border)"}}>
+                    <div style={{width:36,height:36,borderRadius:10,background:dotBg,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>{dotIcon}</div>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{display:"flex",justifyContent:"space-between",marginBottom:3}}>
+                        <div style={{fontWeight:800,fontSize:13}}>{h.productEmoji} {h.productName}</div>
+                        <div style={{fontSize:10,color:"var(--text3)",fontWeight:600,flexShrink:0,marginLeft:6}}>{fmtDate(h.ts)}</div>
+                      </div>
+                      <div style={{display:"flex",gap:7,flexWrap:"wrap",alignItems:"center"}}>
+                        <div style={{display:"flex",alignItems:"center",gap:5,background:"var(--bg)",borderRadius:7,padding:"2px 9px"}}>
+                          <span style={{fontWeight:900,fontSize:12,color:"var(--red)"}}>{h.oldQty}</span>
+                          <span style={{color:"var(--text3)",fontSize:11}}>→</span>
+                          <span style={{fontWeight:900,fontSize:12,color:"var(--green)"}}>{h.newQty}</span>
+                        </div>
+                        {diff!==null&&<span style={{fontSize:10,fontWeight:800,padding:"2px 8px",borderRadius:7,background:diff>0?"var(--green2)":diff<0?"var(--red2)":"var(--border)",color:diff>0?"var(--green)":diff<0?"var(--red)":"var(--text2)"}}>{diff>0?"+":""}{diff.toFixed(0)}</span>}
+                        {h.note&&<span style={{fontSize:11,color:"var(--text2)",fontWeight:600}}>📝 {h.note}</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <div style={{height:16}}/>
+        </div>
+      )}
+
+      {/* ══════════ SUPPLIERS TAB ══════════ */}
+      {tab==="suppliers"&&(
+        <div style={{padding:"14px 14px 0"}}>
+          {/* Header row with Add button */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+            <span style={{fontSize:11,color:"var(--text3)",fontWeight:800,letterSpacing:"0.5px"}}>{supps.length} SUPPLIER{supps.length!==1?"S":""}</span>
+            <button onClick={function(){setEditingS(null);setSForm({name:"",phone:"",address:"",products:""});setShowSForm(true);}}
+              style={{background:"var(--p)",color:"white",borderRadius:12,padding:"9px 18px",fontWeight:800,fontSize:13,boxShadow:"0 2px 8px rgba(108,52,131,0.3)",display:"flex",alignItems:"center",gap:6}}>
+              <span style={{fontSize:18,lineHeight:1}}>+</span> Add Supplier
+            </button>
+          </div>
+
+          {supps.length===0&&(
+            <div style={{textAlign:"center",padding:"48px 20px",background:"var(--card)",borderRadius:18,border:"2px dashed var(--border)"}}>
+              <div style={{fontSize:52,marginBottom:14}}>🚚</div>
+              <div style={{fontWeight:800,fontSize:17,marginBottom:6}}>No suppliers yet</div>
+              <div style={{color:"var(--text3)",fontSize:13,marginBottom:20}}>Save your supplier contacts here</div>
+              <button onClick={function(){setEditingS(null);setSForm({name:"",phone:"",address:"",products:""});setShowSForm(true);}}
+                style={{background:"var(--p)",color:"white",border:"none",borderRadius:13,padding:"12px 28px",fontWeight:800,fontSize:14,boxShadow:"0 4px 16px rgba(108,52,131,0.3)"}}>
+                + Add First Supplier
+              </button>
+            </div>
+          )}
+
+          {supps.map(function(s,i){
+            var tp=prods.filter(function(p){return p.suppId===s.id;});
+            return(
+              <div key={s.id} style={{background:"var(--card)",borderRadius:16,overflow:"hidden",marginBottom:10,boxShadow:"var(--shadow)",border:"1px solid var(--border)",animation:"fadeUp 0.2s ease both",animationDelay:(i*0.04)+"s"}}>
+                <div style={{padding:"14px 14px 10px"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                    <div style={{display:"flex",alignItems:"center",gap:11}}>
+                      <div style={{width:48,height:48,background:"var(--p3)",borderRadius:13,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,border:"2px solid var(--p3)",flexShrink:0}}>🏭</div>
+                      <div>
+                        <div style={{fontWeight:800,fontSize:16,color:"var(--text)"}}>{s.name}</div>
+                        {s.phone&&<div style={{fontSize:12,color:"var(--text2)",fontWeight:600,marginTop:3}}>📞 {s.phone}</div>}
+                      </div>
+                    </div>
+                    <div style={{display:"flex",gap:6}}>
+                      <button onClick={function(){setEditingS(s);setSForm({name:s.name,phone:s.phone||"",address:s.address||"",products:s.products||""});setShowSForm(true);}}
+                        style={{background:"var(--amber2)",color:"var(--amber)",border:"none",borderRadius:9,padding:"7px 12px",fontWeight:700,fontSize:12}}>✏️</button>
+                      <button onClick={function(){setDelSupp(s);}}
+                        style={{background:"var(--red2)",color:"var(--red)",border:"none",borderRadius:9,padding:"7px 12px",fontWeight:700,fontSize:12}}>🗑️</button>
+                    </div>
+                  </div>
+                  {s.address&&<div style={{fontSize:12,color:"var(--text2)",marginBottom:6}}>📍 {s.address}</div>}
+                  {s.products&&<div style={{fontSize:12,color:"var(--text2)",marginBottom:8}}>📋 {s.products}</div>}
+                  {tp.length>0&&(
+                    <div style={{display:"flex",gap:5,flexWrap:"wrap",paddingTop:8,borderTop:"1px solid var(--border)"}}>
+                      <span style={{fontSize:11,color:"var(--text3)",fontWeight:700,alignSelf:"center"}}>Products:</span>
+                      {tp.map(function(p){return <span key={p.id} className="tag tgr">{p.emoji} {p.name}</span>;})}
+                    </div>
+                  )}
+                </div>
+                {s.phone&&(
+                  <a href={"tel:"+s.phone} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,background:"#25D366",color:"white",padding:"11px",fontWeight:800,fontSize:13,textDecoration:"none",borderTop:"1px solid var(--border)"}}>
+                    📞 Call {s.name}
+                  </a>
+                )}
+              </div>
+            );
+          })}
+          <div style={{height:16}}/>
+        </div>
+      )}
+
+      {/* ══════════ SETTINGS TAB ══════════ */}
+      {tab==="settings"&&(
+        <div style={{padding:"14px 14px 0"}}>
+          {/* Change shop type */}
+          <div style={{background:"var(--card)",borderRadius:16,padding:16,marginBottom:12,boxShadow:"var(--shadow)"}}>
+            <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>🏪 Current Shop Type</div>
+            {SHOP_TYPES.map(function(st){return(
+              <button key={st.id} onClick={function(){chooseShop(st.id);msg("✅ Switched to "+st.label);setTab("inventory");}}
+                style={{width:"100%",display:"flex",alignItems:"center",gap:12,padding:"12px",marginBottom:8,borderRadius:12,background:shopType===st.id?"var(--p3)":"var(--bg)",border:shopType===st.id?"2px solid var(--p)":"2px solid transparent"}}>
+                <div style={{width:40,height:40,borderRadius:10,background:st.color,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0}}>{st.emoji}</div>
+                <div style={{textAlign:"left",flex:1}}>
+                  <div style={{fontWeight:700,fontSize:14,color:"var(--text)"}}>{st.label}</div>
+                  <div style={{fontSize:11,color:"var(--text3)"}}>{st.desc}</div>
+                </div>
+                {shopType===st.id&&<span style={{color:"var(--p)",fontSize:18,fontWeight:900}}>✓</span>}
+              </button>
+            );})}
+          </div>
+
+          {/* Add Supplier from Settings too */}
+          <div style={{background:"var(--card)",borderRadius:16,padding:16,marginBottom:12,boxShadow:"var(--shadow)"}}>
+            <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>🚚 Suppliers ({supps.length})</div>
+            <button onClick={function(){setEditingS(null);setSForm({name:"",phone:"",address:"",products:""});setShowSForm(true);setTab("suppliers");}}
+              style={{width:"100%",padding:"12px",background:"var(--p)",color:"white",border:"none",borderRadius:12,fontWeight:700,fontSize:14,marginBottom:6,display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              + Add New Supplier
+            </button>
+            {supps.length>0&&<button onClick={function(){setTab("suppliers");}} style={{width:"100%",padding:"10px",background:"var(--p3)",color:"var(--p)",border:"1px solid var(--p)",borderRadius:12,fontWeight:700,fontSize:13}}>View All Suppliers →</button>}
+          </div>
+
+          {/* Data management */}
+          <div style={{background:"var(--card)",borderRadius:16,padding:16,marginBottom:12,boxShadow:"var(--shadow)"}}>
+            <div style={{fontWeight:800,fontSize:15,marginBottom:12}}>🗂️ Data</div>
+            <button onClick={function(){if(window.confirm("Clear ALL products? This cannot be undone.")){saveProds([]);saveHist([]);msg("🗑️ All data cleared");}}}
+              style={{width:"100%",padding:"12px",background:"var(--red2)",color:"var(--red)",border:"1px solid var(--red)",borderRadius:12,fontWeight:700,fontSize:14,marginBottom:8}}>
+              🗑️ Clear All Products & History
+            </button>
+            <div style={{fontSize:12,color:"var(--text3)",textAlign:"center"}}>Products: {prods.length} · History: {hist.length} entries</div>
+          </div>
+
+          <div style={{background:"var(--card)",borderRadius:16,padding:16,marginBottom:12,boxShadow:"var(--shadow)"}}>
+            <div style={{fontWeight:800,fontSize:15,marginBottom:8}}>🌙 Appearance</div>
+            <div className="tog-wrap" onClick={function(){setDark(function(d){return !d;});}}>
+              <div className="tog" style={{background:dark?"var(--p)":"var(--border)"}}><div className={"tog-knob"+(dark?" on":"")}/></div>
+              <span style={{fontSize:14,fontWeight:600,color:"var(--text)"}}>Dark Mode {dark?"ON":"OFF"}</span>
+            </div>
+          </div>
+          <div style={{height:16}}/>
+        </div>
+      )}
+
+      {/* ── BOTTOM NAV ── */}
+      <div className="bnav">
+        {tabs.map(function(n){return(
+          <button key={n.id} className={"nb"+(tab===n.id?" on":"")} onClick={function(){setTab(n.id);}}>
+            <div style={{position:"relative",display:"inline-block"}}>
+              <span className="ni">{n.icon}</span>
+              {n.id==="history"&&hist.length>0&&tab!==n.id&&<span style={{position:"absolute",top:-4,right:-6,background:"var(--p)",color:"white",borderRadius:10,padding:"1px 4px",fontSize:8,fontWeight:800,minWidth:14,textAlign:"center"}}>{hist.length}</span>}
+              {n.id==="jobs"&&jobs.filter(function(j){return j.status==="Pending"||j.status==="In Progress";}).length>0&&tab!==n.id&&<span style={{position:"absolute",top:-4,right:-6,background:"var(--amber)",color:"white",borderRadius:10,padding:"1px 4px",fontSize:8,fontWeight:800,minWidth:14,textAlign:"center"}}>{jobs.filter(function(j){return j.status==="Pending"||j.status==="In Progress";}).length}</span>}
+            </div>
+            <span className="nt">{n.label}</span>
+          </button>
+        );})}
+      </div>
+
+      {/* FAB */}
+      {(tab==="inventory"||tab==="jobs")&&(
+        <button className="fab" onClick={function(){
+          if(tab==="jobs"){setEditingJ(null);setJobForm(EMPTY_JOB);setShowJobF(true);}
+          else{setEditing(null);setForm(Object.assign({},EMPTY_PROD,{cat:CATS[shopType][0]}));setShowForm(true);}
+        }}>+</button>
+      )}
+
+      {/* ══════════ ADD/EDIT PRODUCT SHEET ══════════ */}
+      {showForm&&(
+        <div>
+          <div className="overlay" onClick={function(){setShowForm(false);setEditing(null);}}/>
+          <div className="sheet">
+            <div className="sheet-handle"/>
+            <div style={{padding:"18px 18px 36px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+                <div>
+                  <div style={{fontWeight:900,fontSize:19}}>{editing?"Edit Product":"New Product"}</div>
+                  <div style={{fontSize:11,color:"var(--text3)",fontWeight:600,marginTop:2}}>{stInfo.label} · {editing?"update details":"add to inventory"}</div>
+                </div>
+                <button onClick={function(){setShowForm(false);setEditing(null);}} style={{width:34,height:34,background:"var(--border)",borderRadius:9,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text2)"}}>✕</button>
+              </div>
+
+              {/* Photo */}
+              <div style={{marginBottom:14}}>
+                <div className="lbl-s">Product Photo</div>
+                {form.photo?(
+                  <div style={{position:"relative",borderRadius:14,overflow:"hidden"}}>
+                    <img src={form.photo} style={{width:"100%",height:150,objectFit:"cover",display:"block"}}/>
+                    <div style={{position:"absolute",inset:0,background:"linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 50%)"}}/>
+                    <div style={{position:"absolute",bottom:10,left:0,right:0,display:"flex",justifyContent:"center",gap:8}}>
+                      <label style={{background:"white",borderRadius:9,padding:"7px 13px",fontWeight:700,fontSize:12,color:"var(--p)",cursor:"pointer",boxShadow:"0 3px 10px rgba(0,0,0,0.2)"}}>📷 Change<input type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handlePhoto}/></label>
+                      <button onClick={function(){setForm(function(f){return Object.assign({},f,{photo:null});});}} style={{background:"white",borderRadius:9,padding:"7px 13px",fontWeight:700,fontSize:12,color:"var(--red)",boxShadow:"0 3px 10px rgba(0,0,0,0.2)"}}>🗑️</button>
+                    </div>
+                  </div>
+                ):(
+                  <label className="pdrop">
+                    <input type="file" accept="image/*" capture="environment" onChange={handlePhoto}/>
+                    <div style={{fontSize:34,pointerEvents:"none"}}>📷</div>
+                    <div style={{fontWeight:800,fontSize:13,color:"var(--p)",pointerEvents:"none"}}>Tap to add photo</div>
+                  </label>
+                )}
+              </div>
+
+              {/* Emoji */}
+              {!form.photo&&(
+                <div style={{marginBottom:14}}>
+                  <div className="lbl-s">Icon</div>
+                  <div style={{display:"flex",gap:5,flexWrap:"wrap"}}>
+                    {EMOJIS.map(function(e){return(
+                      <button key={e} onClick={function(){setForm(function(f){return Object.assign({},f,{emoji:e});});}}
+                        style={{fontSize:20,background:form.emoji===e?"var(--p3)":"var(--bg)",border:form.emoji===e?"2px solid var(--p)":"2px solid transparent",borderRadius:9,padding:"5px 6px",lineHeight:1}}>
+                        {e}
+                      </button>
+                    );})}
+                  </div>
+                </div>
+              )}
+
+              {/* Category */}
+              <div style={{marginBottom:14}}>
+                <div className="lbl-s">Category</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {CATS[shopType].map(function(c){return(
+                    <button key={c} className="cat-pill" onClick={function(){setForm(function(f){return Object.assign({},f,{cat:c});});}}
+                      style={{background:form.cat===c?"var(--p)":"var(--card)",color:form.cat===c?"white":"var(--text2)",border:form.cat===c?"none":"1px solid var(--border)",fontSize:12}}>
+                      {c}
+                    </button>
+                  );})}
+                </div>
+              </div>
+
+              {/* Name + Brand */}
+              <div style={{marginBottom:12}}>
+                <div className="lbl-s">Product Name *</div>
+                <input className="field" type="text" value={form.name} onChange={setF("name")} placeholder="e.g. Paracetamol 500mg"/>
+              </div>
+              <div style={{marginBottom:12}}>
+                <div className="lbl-s">Brand / Company</div>
+                <input className="field" type="text" value={form.brand} onChange={setF("brand")} placeholder="e.g. Cipla, Raymond, Samsung"/>
+              </div>
+
+              {/* Cloth-specific fields */}
+              {shopType==="cloth"&&(
+                <div style={{marginBottom:12}}>
+                  <div className="lbl-s">Size & Color & Fabric</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:10,color:"var(--text3)",fontWeight:700,marginBottom:5}}>SIZE</div>
+                      <select className="field" value={form.size} onChange={setF("size")}>
+                        <option value="">Select size</option>
+                        {SIZES.map(function(s){return <option key={s} value={s}>{s}</option>;})}
+                      </select>
+                    </div>
+                    <div>
+                      <div style={{fontSize:10,color:"var(--text3)",fontWeight:700,marginBottom:5}}>COLOR</div>
+                      <select className="field" value={form.color} onChange={setF("color")}>
+                        <option value="">Select color</option>
+                        {COLORS_LIST.map(function(c){return <option key={c} value={c}>{c}</option>;})}
+                      </select>
+                    </div>
+                  </div>
+                  <input className="field" type="text" value={form.fabric} onChange={setF("fabric")} placeholder="Fabric e.g. Cotton, Polyester, Silk"/>
+                </div>
+              )}
+
+              {/* Medical-specific fields */}
+              {shopType==="medical"&&(
+                <div style={{marginBottom:12}}>
+                  <div className="lbl-s">Medical Details</div>
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:8}}>
+                    <div>
+                      <div style={{fontSize:10,color:"var(--text3)",fontWeight:700,marginBottom:5}}>EXPIRY DATE</div>
+                      <input className="field" type="date" value={form.expiry} onChange={setF("expiry")}/>
+                    </div>
+                    <div>
+                      <div style={{fontSize:10,color:"var(--text3)",fontWeight:700,marginBottom:5}}>BATCH NO.</div>
+                      <input className="field" type="text" value={form.batch} onChange={setF("batch")} placeholder="e.g. BT2024A"/>
+                    </div>
+                  </div>
+                  <div className="tog-wrap" onClick={function(){setForm(function(f){return Object.assign({},f,{prescription:!f.prescription});});}}>
+                    <div className="tog" style={{background:form.prescription?"var(--red)":"var(--border)"}}><div className={"tog-knob"+(form.prescription?" on":"")}/></div>
+                    <span style={{fontSize:13,fontWeight:600,color:"var(--text)"}}>Prescription Required (Rx)</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Qty & Prices */}
+              <div style={{marginBottom:12}}>
+                <div className="lbl-s">Quantity</div>
+                <input className="field" type="text" value={form.qty} onChange={setF("qty")} placeholder="e.g. 50, 5 kg, 10 pcs" style={{textAlign:"center",fontWeight:800,fontSize:16}}/>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:9,marginBottom:14}}>
+                {[["Sale Price ₹ *","saleR","10"],["Wholesale ₹","saleW","8"],["Cost Price ₹ *","cost","7"]].map(function(r){return(
+                  <div key={r[1]}>
+                    <div style={{fontSize:10,fontWeight:800,color:"var(--text3)",textTransform:"uppercase",letterSpacing:"0.5px",marginBottom:6}}>{r[0]}</div>
+                    <input className="field" type="number" value={form[r[1]]} onChange={setF(r[1])} placeholder={r[2]} style={{textAlign:"center",fontWeight:800,fontSize:14,padding:"10px 5px"}}/>
+                  </div>
+                );})}
+              </div>
+
+              {/* Profit preview */}
+              {form.saleR&&form.cost&&(
+                <div style={{borderRadius:12,padding:"11px 14px",marginBottom:16,display:"flex",justifyContent:"space-between",alignItems:"center",background:+form.saleR>+form.cost?"var(--green2)":"var(--red2)",border:"1.5px solid",borderColor:+form.saleR>+form.cost?"#a9dfbf":"#f5c2c2"}}>
+                  <span style={{fontSize:12,fontWeight:700,color:"var(--text2)"}}>Profit per unit</span>
+                  <span style={{fontWeight:900,fontSize:18,color:+form.saleR>+form.cost?"var(--green)":"var(--red)"}}>₹{(+form.saleR-+form.cost).toFixed(2)}</span>
+                </div>
+              )}
+
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={function(){setShowForm(false);setEditing(null);}} style={{flex:1,padding:"13px",background:"var(--card)",color:"var(--p)",border:"2px solid var(--p)",borderRadius:13,fontWeight:700,fontSize:14}}>Cancel</button>
+                <button onClick={submitProd} style={{flex:2,padding:"13px",background:"linear-gradient(135deg,var(--p),var(--p2))",color:"white",borderRadius:13,fontWeight:800,fontSize:15,boxShadow:"0 4px 16px rgba(108,52,131,0.3)"}}>
+                  {editing?"💾 Save Changes":"➕ Add Product"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════ ADD/EDIT REPAIR JOB SHEET ══════════ */}
+      {showJobF&&(
+        <div>
+          <div className="overlay" onClick={function(){setShowJobF(false);setEditingJ(null);}}/>
+          <div className="sheet">
+            <div className="sheet-handle"/>
+            <div style={{padding:"18px 18px 36px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+                <div>
+                  <div style={{fontWeight:900,fontSize:19}}>{editingJ?"Edit Job":"New Repair Job"}</div>
+                  <div style={{fontSize:11,color:"var(--text3)",fontWeight:600,marginTop:2}}>Log customer repair details</div>
+                </div>
+                <button onClick={function(){setShowJobF(false);setEditingJ(null);}} style={{width:34,height:34,background:"var(--border)",borderRadius:9,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text2)"}}>✕</button>
+              </div>
+              {[
+                {l:"Customer Name *",k:"customerName",t:"text",ph:"e.g. Rahul Sharma"},
+                {l:"Phone Number",k:"phone",t:"tel",ph:"e.g. 9876543210"},
+                {l:"Device Model *",k:"device",t:"text",ph:"e.g. Samsung Galaxy A54"},
+                {l:"IMEI / Serial No.",k:"imei",t:"text",ph:"e.g. 358765012345678"},
+                {l:"Problem Description",k:"problem",t:"text",ph:"e.g. Screen broken, battery not charging"}
+              ].map(function(r){return(
+                <div key={r.k} style={{marginBottom:12}}>
+                  <div className="lbl-s">{r.l}</div>
+                  <input className="field" type={r.t} value={jobForm[r.k]} onChange={setJF(r.k)} placeholder={r.ph}/>
+                </div>
+              );})}
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:9,marginBottom:12}}>
+                <div>
+                  <div className="lbl-s">Repair Cost ₹</div>
+                  <input className="field" type="number" value={jobForm.cost} onChange={setJF("cost")} placeholder="500"/>
+                </div>
+                <div>
+                  <div className="lbl-s">Advance Paid ₹</div>
+                  <input className="field" type="number" value={jobForm.advance} onChange={setJF("advance")} placeholder="200"/>
+                </div>
+              </div>
+              <div style={{marginBottom:12}}>
+                <div className="lbl-s">Status</div>
+                <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                  {JOB_STATUS.map(function(s){return(
+                    <button key={s} onClick={function(){setJobForm(function(f){return Object.assign({},f,{status:s});});}}
+                      className="cat-pill" style={{background:jobForm.status===s?"var(--p)":"var(--card)",color:jobForm.status===s?"white":"var(--text2)",border:jobForm.status===s?"none":"1px solid var(--border)",fontSize:12}}>
+                      {s}
+                    </button>
+                  );})}
+                </div>
+              </div>
+              <div style={{marginBottom:12}}>
+                <div className="lbl-s">Warranty</div>
+                <input className="field" type="text" value={jobForm.warranty} onChange={setJF("warranty")} placeholder="e.g. 30 days, 3 months"/>
+              </div>
+              <div style={{marginBottom:16}}>
+                <div className="lbl-s">Notes</div>
+                <input className="field" type="text" value={jobForm.notes} onChange={setJF("notes")} placeholder="Any extra notes…"/>
+              </div>
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={function(){setShowJobF(false);setEditingJ(null);}} style={{flex:1,padding:"13px",background:"var(--card)",color:"var(--p)",border:"2px solid var(--p)",borderRadius:13,fontWeight:700,fontSize:14}}>Cancel</button>
+                <button onClick={submitJob} style={{flex:2,padding:"13px",background:"linear-gradient(135deg,var(--teal),#0e7360)",color:"white",borderRadius:13,fontWeight:800,fontSize:15,boxShadow:"0 4px 16px rgba(20,143,119,0.3)"}}>
+                  {editingJ?"💾 Save":"🔧 Add Job"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QTY UPDATE */}
+      {qtyTgt&&(
+        <div>
+          <div className="overlay" onClick={function(){setQtyTgt(null);}}/>
+          <div className="sheet">
+            <div className="sheet-handle"/>
+            <div style={{padding:"18px 18px 36px"}}>
+              <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:18,background:"var(--bg)",borderRadius:14,padding:13}}>
+                {qtyTgt.photo?<img src={qtyTgt.photo} style={{width:52,height:52,borderRadius:11,objectFit:"cover"}}/>
+                  :<div style={{width:52,height:52,background:"var(--teal2)",borderRadius:11,display:"flex",alignItems:"center",justifyContent:"center",fontSize:28}}>{qtyTgt.emoji}</div>}
+                <div>
+                  <div style={{fontWeight:800,fontSize:16}}>{qtyTgt.name}</div>
+                  <div style={{fontSize:12,color:"var(--text2)",fontWeight:600,marginTop:1}}>Current: <b style={{color:"var(--p)"}}>{qtyTgt.qty}</b></div>
+                </div>
+              </div>
+              <div className="lbl-s">New Quantity</div>
+              <input className="field" type="text" value={nqty} onChange={function(e){setNqty(e.target.value);}} placeholder="e.g. 50, 5 kg…" style={{textAlign:"center",fontSize:22,fontWeight:900,padding:"14px",marginBottom:10}}/>
+              {!isNaN(parseFloat(nqty))&&(
+                <div style={{display:"flex",gap:7,marginBottom:14,justifyContent:"center"}}>
+                  {[-10,-5,-1,1,5,10].map(function(n){return(
+                    <button key={n} onClick={function(){var c=parseFloat(nqty)||0;setNqty(String(Math.max(0,c+n)));}}
+                      style={{background:n>0?"var(--green2)":"var(--red2)",color:n>0?"var(--green)":"var(--red)",border:"none",borderRadius:9,padding:"6px 9px",fontWeight:800,fontSize:12}}>
+                      {n>0?"+":""}{n}
+                    </button>
+                  );})}
+                </div>
+              )}
+              <div className="lbl-s">Reason</div>
+              <input className="field" type="text" value={nqtyNote} onChange={function(e){setNqtyNote(e.target.value);}} placeholder="e.g. New stock, Sold 20 pcs…" style={{marginBottom:18}}/>
+              <div style={{display:"flex",gap:10}}>
+                <button onClick={function(){setQtyTgt(null);}} style={{flex:1,padding:"13px",background:"var(--card)",color:"var(--p)",border:"2px solid var(--p)",borderRadius:13,fontWeight:700}}>Cancel</button>
+                <button onClick={doQty} style={{flex:2,padding:"13px",background:"linear-gradient(135deg,var(--teal),#0e7360)",color:"white",borderRadius:13,fontWeight:800,fontSize:15}}>✅ Update Stock</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRM */}
+      {delTgt&&(
+        <div>
+          <div className="overlay" onClick={function(){setDelTgt(null);}}/>
+          <div className="popup">
+            <div className="card-pop">
+              <div style={{padding:"22px 22px 0",textAlign:"center"}}>
+                {delTgt.photo?<img src={delTgt.photo} style={{width:72,height:72,borderRadius:14,objectFit:"cover",marginBottom:12}}/>:<div style={{fontSize:50,marginBottom:10}}>🗑️</div>}
+                <div style={{fontWeight:900,fontSize:19,marginBottom:7}}>Delete Product?</div>
+                <div style={{color:"var(--text2)",fontSize:13,lineHeight:1.6}}><b>{delTgt.name}</b> will be permanently removed.</div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,background:"var(--border)",marginTop:18}}>
+                <button onClick={function(){setDelTgt(null);}} style={{padding:"15px",background:"var(--card)",color:"var(--text)",fontWeight:700,fontSize:14,borderRadius:"0 0 0 20px"}}>Keep</button>
+                <button onClick={doDelete} style={{padding:"15px",background:"var(--red2)",color:"var(--red)",fontWeight:800,fontSize:14,borderRadius:"0 0 20px 0"}}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══════════ ADD/EDIT SUPPLIER SHEET ══════════ */}
+      {showSForm&&(
+        <div>
+          <div className="overlay" onClick={function(){setShowSForm(false);setEditingS(null);}}/>
+          <div className="sheet">
+            <div className="sheet-handle"/>
+            <div style={{padding:"18px 18px 36px"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:18}}>
+                <div>
+                  <div style={{fontWeight:900,fontSize:19}}>{editingS?"Edit Supplier":"New Supplier"}</div>
+                  <div style={{fontSize:11,color:"var(--text3)",fontWeight:600,marginTop:2}}>Save supplier contact info</div>
+                </div>
+                <button onClick={function(){setShowSForm(false);setEditingS(null);}} style={{width:34,height:34,background:"var(--border)",borderRadius:9,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",color:"var(--text2)"}}>✕</button>
+              </div>
+              {[
+                {l:"Supplier Name *",k:"name",t:"text",ph:"e.g. Sharma Traders"},
+                {l:"Phone Number",k:"phone",t:"tel",ph:"e.g. 9876543210"},
+                {l:"Address",k:"address",t:"text",ph:"e.g. Main Market, Delhi"},
+                {l:"Products They Supply",k:"products",t:"text",ph:"e.g. Soaps, Detergents, FMCG"}
+              ].map(function(r){return(
+                <div key={r.k} style={{marginBottom:13}}>
+                  <div className="lbl-s">{r.l}</div>
+                  <input className="field" type={r.t} value={sForm[r.k]}
+                    onChange={function(e){setSForm(function(f){return Object.assign({},f,{[r.k]:e.target.value});});}}
+                    placeholder={r.ph}/>
+                </div>
+              );})}
+              <div style={{display:"flex",gap:10,marginTop:6}}>
+                <button onClick={function(){setShowSForm(false);setEditingS(null);}} style={{flex:1,padding:"13px",background:"var(--card)",color:"var(--p)",border:"2px solid var(--p)",borderRadius:13,fontWeight:700,fontSize:14}}>Cancel</button>
+                <button onClick={submitSupp} style={{flex:2,padding:"13px",background:"linear-gradient(135deg,var(--p),var(--p2))",color:"white",borderRadius:13,fontWeight:800,fontSize:15,boxShadow:"0 4px 16px rgba(108,52,131,0.3)"}}>
+                  {editingS?"💾 Save Changes":"🚚 Add Supplier"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE SUPPLIER */}
+      {delSupp&&(
+        <div>
+          <div className="overlay" onClick={function(){setDelSupp(null);}}/>
+          <div className="popup">
+            <div className="card-pop">
+              <div style={{padding:"22px 22px 0",textAlign:"center"}}>
+                <div style={{fontSize:50,marginBottom:10}}>🗑️</div>
+                <div style={{fontWeight:900,fontSize:19,marginBottom:7}}>Delete Supplier?</div>
+                <div style={{color:"var(--text2)",fontSize:13,lineHeight:1.6}}><b>{delSupp&&delSupp.name}</b> will be removed. Products linked to them will stay.</div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,background:"var(--border)",marginTop:18}}>
+                <button onClick={function(){setDelSupp(null);}} style={{padding:"15px",background:"var(--card)",color:"var(--text)",fontWeight:700,fontSize:14,borderRadius:"0 0 0 20px"}}>Cancel</button>
+                <button onClick={function(){sv(K_SUPP,supps.filter(function(x){return x.id!==delSupp.id;}));setSupps(supps.filter(function(x){return x.id!==delSupp.id;}));setDelSupp(null);msg("🗑️ Supplier deleted");}} style={{padding:"15px",background:"var(--red2)",color:"var(--red)",fontWeight:800,fontSize:14,borderRadius:"0 0 20px 0"}}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE JOB */}
+      {delJob&&(
+        <div>
+          <div className="overlay" onClick={function(){setDelJob(null);}}/>
+          <div className="popup">
+            <div className="card-pop">
+              <div style={{padding:"22px 22px 0",textAlign:"center"}}>
+                <div style={{fontSize:50,marginBottom:10}}>🔧</div>
+                <div style={{fontWeight:900,fontSize:19,marginBottom:7}}>Delete Job?</div>
+                <div style={{color:"var(--text2)",fontSize:13}}><b>{delJob.customerName}</b> — {delJob.device}</div>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:1,background:"var(--border)",marginTop:18}}>
+                <button onClick={function(){setDelJob(null);}} style={{padding:"15px",background:"var(--card)",color:"var(--text)",fontWeight:700,fontSize:14,borderRadius:"0 0 0 20px"}}>Keep</button>
+                <button onClick={function(){saveJobs(jobs.filter(function(x){return x.id!==delJob.id;}));setDelJob(null);msg("🗑️ Job deleted");}} style={{padding:"15px",background:"var(--red2)",color:"var(--red)",fontWeight:800,fontSize:14,borderRadius:"0 0 20px 0"}}>Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FULLSCREEN PHOTO */}
+      {bigImg&&(
+        <div onClick={function(){setBigImg(null);}} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.95)",zIndex:300,display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+          <img src={bigImg} style={{maxWidth:"100%",maxHeight:"90vh",borderRadius:14,objectFit:"contain"}}/>
+          <button onClick={function(){setBigImg(null);}} style={{position:"absolute",top:20,right:20,background:"rgba(255,255,255,0.1)",color:"white",width:42,height:42,borderRadius:21,fontSize:18,display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,0.2)"}}>✕</button>
+        </div>
+      )}
+
+      {toastMsg&&<div className="toast">{toastMsg}</div>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+  </html>
